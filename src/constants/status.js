@@ -1,6 +1,4 @@
-/**
- * Status Constants
- */
+
 export const PASS_STATUS = {
   PENDING_DEPARTMENT: "PENDING_DEPARTMENT",
   PENDING_ACADEMIC: "PENDING_ACADEMIC",

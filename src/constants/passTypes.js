@@ -1,6 +1,4 @@
-/**
- * Pass Type Constants
- */
+
 export const PASS_TYPES = {
   OUT_OF_STATION: "OUT_OF_STATION",
   LOCAL: "LOCAL",

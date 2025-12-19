@@ -2,7 +2,7 @@
 
 ## 🔒 Error Message
 ```
-❌ SMTP connection failed
+SMTP connection failed
    Error: self-signed certificate in certificate chain
 ```
 
@@ -95,6 +95,7 @@ SKIP_EMAIL_VERIFICATION=true
 - `backend/src/utils/email.utils.js` - Email configuration
 - `backend/src/utils/test-email.js` - Test utility
 - `backend/EMAIL_SETUP.md` - Full setup guide
+
 
 
 

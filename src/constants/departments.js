@@ -1,7 +1,4 @@
-/**
- * Department Constants
- * Fixed list of allowed departments in the system
- */
+
 export const DEPARTMENTS = [
   "CSE",
   "Chemical",

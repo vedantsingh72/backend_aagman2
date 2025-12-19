@@ -11,10 +11,7 @@ import { verifyOTP, generateOTP, hashOTP, getOTPExpiry } from "../utils/otp.util
 import { sendOTPEmail } from "../utils/email.utils.js";
 import { logOTPToConsole } from "../utils/email-dev-mode.js";
 
-/**
- * Get current user profile (works for all roles)
- * Uses attachUser middleware to fetch the correct model based on role
- */
+
 export const getMyProfile = asyncHandler(async (req, res) => {
   // attachUser middleware should have attached req.account
   if (!req.account) {
@@ -26,10 +23,7 @@ export const getMyProfile = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, req.account, "Profile fetched successfully"));
 });
 
-/**
- * Verify OTP for all roles (student, department, academic, hostelOffice, gate)
- * POST /api/auth/verify-otp
- */
+
 export const verifyOTPController = asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
 
@@ -173,10 +167,7 @@ export const resendOTP = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, null, "OTP resent successfully. Please check your email."));
 });
 
-/**
- * Forgot Password - Send OTP
- * POST /api/auth/forgot-password
- */
+
 export const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
@@ -184,16 +175,13 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     throw new apiError(400, "Email is required");
   }
 
-  // Find user by email
   const user = await User.findOne({ email });
   if (!user) {
-    // Don't reveal if user exists for security
     return res
       .status(200)
       .json(new apiResponse(200, null, "If an account exists with this email, an OTP has been sent."));
   }
 
-  // Generate OTP for password reset
   const otp = generateOTP();
   const hashedOTP = await hashOTP(otp);
   const otpExpiry = getOTPExpiry();
@@ -228,10 +216,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, null, "If an account exists with this email, an OTP has been sent."));
 });
 
-/**
- * Reset Password using OTP
- * POST /api/auth/reset-password
- */
+
 export const resetPassword = asyncHandler(async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
