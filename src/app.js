@@ -8,7 +8,7 @@ import departmentRoutes from "./routes/department.routes.js";
 import academicRoutes from "./routes/academic.routes.js";
 import hostelofficeRoutes from "./routes/hosteloffice.routes.js";
 import gateRoutes from "./routes/gates.routes.js";
-import { verifySMTPConnection } from "./utils/email.utils.js";
+
 
 
 import errorHandler from "./middleware/error.middleware.js";
@@ -94,17 +94,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("/test-email", async (req, res) => {
-  try {
-    const result = await verifySMTPConnection();
-    return res.status(200).json(result);
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
+
 /* -------------------- 404 HANDLER -------------------- */
 
 app.use(notFound);
