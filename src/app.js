@@ -94,14 +94,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-/* -------------------- 404 HANDLER -------------------- */
-
-app.use(notFound);
-
-/* -------------------- GLOBAL ERROR HANDLER -------------------- */
-
-app.use(errorHandler);
-
 app.get("/test-email", async (req, res) => {
   try {
     const result = await verifySMTPConnection();
@@ -113,6 +105,16 @@ app.get("/test-email", async (req, res) => {
     });
   }
 });
+/* -------------------- 404 HANDLER -------------------- */
+
+app.use(notFound);
+
+/* -------------------- GLOBAL ERROR HANDLER -------------------- */
+
+app.use(errorHandler);
+
+
+
 
 
 export default app;
