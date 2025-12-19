@@ -21,8 +21,8 @@ const getSMTPConfig = () => {
   if (provider === "brevo" || provider === "sendinblue") {
     return {
       host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: false,
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: true,
       auth: {
         user: process.env.SMTP_USER?.trim(),
         pass: process.env.SMTP_PASS,
@@ -91,9 +91,10 @@ const createTransporter = () => {
     pool: true,
     maxConnections: 1,
     maxMessages: 100,
-    connectionTimeout: 10000,
-    greetingTimeout: 5000,
-    socketTimeout: 10000,
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    socketTimeout: 20000,
+
   });
 };
 
