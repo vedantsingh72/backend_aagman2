@@ -5,6 +5,7 @@ import {
   getAcademicStudentLeaves,
   getDepartmentLeaveStatsController,
   approveAcademicPass,
+  getAcademicHistory,
 } from "../controllers/academic.controller.js";
 import { validate } from "../middleware/validate.middleware.js";
 import { registerAcademicSchema } from "../schemas/academic.schema.js";
@@ -13,10 +14,8 @@ import { allowRoles } from "../middleware/role.middleware.js";
 
 const router = Router();
 
-// POST /api/academic/register - Register a new academic
 router.post("/register", validate(registerAcademicSchema), registerAcademic);
 
-// GET /api/academic/pending - Get pending passes for academic approval
 router.get(
   "/pending",
   verifyJWT,
@@ -24,7 +23,6 @@ router.get(
   getPendingAcademicPasses
 );
 
-// GET /api/academic/student-leaves - Get student-wise leave statistics
 router.get(
   "/student-leaves",
   verifyJWT,
@@ -32,7 +30,6 @@ router.get(
   getAcademicStudentLeaves
 );
 
-// GET /api/academic/department-leaves - Get department-wise leave statistics
 router.get(
   "/department-leaves",
   verifyJWT,
@@ -45,6 +42,13 @@ router.patch(
   verifyJWT,
   allowRoles("academic"),
   approveAcademicPass
+);
+
+router.get(
+  "/history",
+  verifyJWT,
+  allowRoles("academic"),
+  getAcademicHistory
 );
 
 export default router;

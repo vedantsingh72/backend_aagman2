@@ -4,6 +4,7 @@ import {
   getPendingOutstationPasses,
   getDepartmentStudentLeaves,
   approveOutstationPass,
+  getDepartmentHistory,
 } from "../controllers/department.controller.js";
 
 import { validate } from "../middleware/validate.middleware.js";
@@ -14,10 +15,8 @@ import { attachUser } from "../middleware/attachuser.middleware.js";
 
 const router = Router();
 
-// POST /api/department/register - Register a new department
 router.post("/register", validate(registerDepartmentSchema), registerDepartment);
 
-// View pending outstation passes
 router.get(
   "/pending",
   verifyJWT,
@@ -26,7 +25,6 @@ router.get(
   getPendingOutstationPasses
 );
 
-// Get student leave statistics
 router.get(
   "/student-leaves",
   verifyJWT,
@@ -35,13 +33,20 @@ router.get(
   getDepartmentStudentLeaves
 );
 
-// Approve outstation pass
 router.patch(
   "/approve/:id",
   verifyJWT,
   allowRoles("department"),
   attachUser,
   approveOutstationPass
+);
+
+router.get(
+  "/history",
+  verifyJWT,
+  allowRoles("department"),
+  attachUser,
+  getDepartmentHistory
 );
 
 export default router;

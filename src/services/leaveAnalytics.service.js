@@ -2,38 +2,24 @@ import { Pass } from "../models/Pass.model.js";
 import { PASS_TYPES } from "../constants/passTypes.js";
 import { PASS_STATUS } from "../constants/status.js";
 
-/**
- * EXCESSIVE_LEAVE_LIMIT - Configurable threshold for flagging students
- * Students with more than this many leaves will be flagged
- */
-export const EXCESSIVE_LEAVE_LIMIT = 10; // per semester
-
-/**
- * Get student-wise leave statistics
- * Aggregates approved passes by student
- * 
- * @param {Object} options
- * @param {string} options.department - Filter by department (optional)
- * @returns {Promise<Array>} Array of student leave statistics
- */
-export const getStudentLeaveStats = async ({ department = null } = {}) => {
-  // Build query - only approved passes
+export const EXCESSIVE_LEAVE_LIMIT = 10;
+export const getStudentLeaveStats = async ({ department = null, passTypeFilter = null } = {}) => {
   const query = {
     status: PASS_STATUS.APPROVED,
     passType: { $in: [PASS_TYPES.OUT_OF_STATION, PASS_TYPES.LOCAL] },
   };
 
-  // Filter by department if provided
   if (department) {
     query.department = department;
   }
 
-  // Aggregate passes by student
+  if (passTypeFilter) {
+    query.passType = passTypeFilter;
+  }
+
   const aggregation = await Pass.aggregate([
-    // Match approved passes only
     { $match: query },
 
-    // Group by student
     {
       $group: {
         _id: "$student",
@@ -44,13 +30,11 @@ export const getStudentLeaveStats = async ({ department = null } = {}) => {
         local: {
           $sum: { $cond: [{ $eq: ["$passType", PASS_TYPES.LOCAL] }, 1, 0] }
         },
-        // Get department and year from first pass (should be same for all)
         department: { $first: "$department" },
         year: { $first: "$year" },
       }
     },
 
-    // Lookup student details
     {
       $lookup: {
         from: "users",
@@ -60,7 +44,6 @@ export const getStudentLeaveStats = async ({ department = null } = {}) => {
       }
     },
 
-    // Unwind student details
     {
       $unwind: {
         path: "$studentDetails",
@@ -68,7 +51,6 @@ export const getStudentLeaveStats = async ({ department = null } = {}) => {
       }
     },
 
-    // Project final structure
     {
       $project: {
         studentId: "$_id",
@@ -85,23 +67,15 @@ export const getStudentLeaveStats = async ({ department = null } = {}) => {
       }
     },
 
-    // Sort by total leaves (descending)
     { $sort: { totalLeaves: -1 } }
   ]);
 
   return aggregation;
 };
 
-/**
- * Get department-wise leave statistics
- * Groups students by department
- * 
- * @returns {Promise<Object>} Object with department names as keys
- */
 export const getDepartmentLeaveStats = async () => {
   const stats = await getStudentLeaveStats();
 
-  // Group by department
   const departmentStats = {};
   
   stats.forEach((student) => {

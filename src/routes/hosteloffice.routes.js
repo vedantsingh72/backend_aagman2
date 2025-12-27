@@ -3,6 +3,7 @@ import {
   registerHostelOffice,
   getPendingLocalPasses,
   approveLocalPass,
+  getHostelHistory,
 } from "../controllers/hosteloffice.controller.js";
 
 import { validate } from "../middleware/validate.middleware.js";
@@ -12,7 +13,6 @@ import { allowRoles } from "../middleware/role.middleware.js";
 
 const router = Router();
 
-// POST /api/hosteloffice/register - Register a new hostel office
 router.post(
   "/register",
   validate(registerHostelOfficeSchema),
@@ -31,6 +31,13 @@ router.patch(
   verifyJWT,
   allowRoles("hosteloffice"),
   approveLocalPass
+);
+
+router.get(
+  "/history",
+  verifyJWT,
+  allowRoles("hosteloffice"),
+  getHostelHistory
 );
 
 export default router;

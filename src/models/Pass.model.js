@@ -19,26 +19,27 @@ const PassSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Department - auto-assigned from student profile
     department: {
       type: String,
       enum: DEPARTMENTS,
       required: true,
     },
 
-    // Year - auto-assigned from student profile
     year: {
       type: String,
       enum: ["1", "2", "3", "4"],
     },
 
-    // Common fields
+    hostel: {
+      type: String,
+      required: false,
+    },
+
     reason: String,
-    reasonForLeave: String, // For Out of Station
+    reasonForLeave: String,
     fromDate: Date,
     toDate: Date,
 
-    // Out of Station specific fields
     placeWhereGoing: String,
     contactNumber: String,
     guardianContactNumber: String,
@@ -50,7 +51,6 @@ const PassSchema = new mongoose.Schema(
     emergencyContactName: String,
     emergencyContactRelation: String,
 
-    // Department Approval (first step for OUT_OF_STATION)
     departmentApproval: {
       status: {
         type: String,
@@ -64,7 +64,6 @@ const PassSchema = new mongoose.Schema(
       approvedAt: Date,
     },
 
-    // Academic Approval (second step for OUT_OF_STATION)
     academicApproval: {
       status: {
         type: String,
@@ -78,7 +77,6 @@ const PassSchema = new mongoose.Schema(
       approvedAt: Date,
     },
 
-    // Hostel Approval (for LOCAL passes)
     hostelApproval: {
       status: {
         type: String,
@@ -92,7 +90,6 @@ const PassSchema = new mongoose.Schema(
       approvedAt: Date,
     },
 
-    // Overall status
     status: {
       type: String,
       enum: ["PENDING_DEPARTMENT", "PENDING_ACADEMIC", "PENDING_HOSTEL", "APPROVED", "REJECTED", "EXPIRED"],
@@ -107,7 +104,6 @@ const PassSchema = new mongoose.Schema(
       default: false,
     },
 
-    // QR Scan tracking
     scannedOutAt: {
       type: Date,
     },
@@ -125,7 +121,6 @@ const PassSchema = new mongoose.Schema(
       default: 0,
     },
 
-    // Approval tracking fields (for history/logs)
     approvedByDepartment: {
       type: Schema.Types.ObjectId,
       ref: "Department",

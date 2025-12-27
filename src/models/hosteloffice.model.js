@@ -23,10 +23,6 @@ const HostelOfficeSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-    department: {
-      type: String,
-      enum: ["CSE", "Electronics", "Petroleum", "Chemical", "Mathematics", "Mechanical"],
-    },
     isVerified: {
       type: Boolean,
       default: false,
