@@ -15,7 +15,6 @@ const GateSchema = new mongoose.Schema({
       required: true,
     },
 
-    // OTP Verification fields
     email: {
       type: String,
       required: true,

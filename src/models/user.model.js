@@ -48,7 +48,7 @@ const UserSchema =new mongoose.Schema({
       type: String,
     },
 
-    // OTP Verification fields
+
     isVerified: {
       type: Boolean,
       default: false,

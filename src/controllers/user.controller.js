@@ -10,7 +10,6 @@ export const registerUser = asyncHandler(async (req, res) => {
   const { name, rollNo, registrationNo, department, year, hostel, password, email } =
     req.body;
 
-  // Check if user already exists
   const existingUser = await User.findOne({ 
     $or: [{ rollNo }, { email }] 
   });
@@ -23,7 +22,6 @@ export const registerUser = asyncHandler(async (req, res) => {
     }
   }
 
-  // Generate OTP
   const otp = generateOTP();
   const hashedOTP = await hashOTP(otp);
   const otpExpiry = getOTPExpiry();

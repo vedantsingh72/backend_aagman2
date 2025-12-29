@@ -21,7 +21,6 @@ const DepartmentSchema =new mongoose.Schema(
       required: true,
     },
 
-    // OTP Verification fields
     email: {
       type: String,
       required: true,

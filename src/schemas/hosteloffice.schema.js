@@ -6,5 +6,5 @@ export const registerHostelOfficeSchema = z.object({
   officeId: z.string().min(1, "Office ID is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   codeword: z.string().min(1, "Authorization code is required"),
-});
+}).strict();
 

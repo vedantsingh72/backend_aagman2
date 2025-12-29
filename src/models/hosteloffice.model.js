@@ -16,7 +16,6 @@ const HostelOfficeSchema = new mongoose.Schema(
       required: true,
     },
 
-    // OTP Verification fields
     email: {
       type: String,
       required: true,

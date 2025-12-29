@@ -13,7 +13,11 @@ import { logOTPToConsole } from "../utils/email-dev-mode.js";
 import { validateCodeword, logFailedAttempt } from "../utils/codeword.utils.js";
 
 export const registerHostelOffice = asyncHandler(async (req, res) => {
-  const { name, email, officeId, password, codeword } = req.body;
+  const { name, email, officeId, password, codeword, department } = req.body;
+
+  if (department) {
+    throw new apiError(400, "Department field is not allowed for Hostel Office registration");
+  }
 
   if (!codeword || !validateCodeword(codeword)) {
     logFailedAttempt(email || 'unknown', 'hosteloffice');
