@@ -30,33 +30,30 @@ app.use((req, res, next) => {
 });
 
 // Enable CORS - Production safe
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
 
+const allowedOrigins = [
+  "https://aagman20.vercel.app",
+  "https://aagman20-git-main-vedantsingh72s-projects.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin) return callback(null, true);
-      
-      if (process.env.NODE_ENV === 'development' || allowedOrigins.length === 0) {
-        // Development: allow all origins
-        return callback(null, true);
-      }
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.options("*", cors());
+
 
 // Parse JSON bodies
 app.use(express.json({ limit: "16kb" }));
