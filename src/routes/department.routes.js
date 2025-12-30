@@ -5,6 +5,7 @@ import {
   getDepartmentStudentLeaves,
   approveOutstationPass,
   getDepartmentHistory,
+  getDepartmentStudentsOut,
 } from "../controllers/department.controller.js";
 
 import { validate } from "../middleware/validate.middleware.js";
@@ -47,6 +48,14 @@ router.get(
   allowRoles("department"),
   attachUser,
   getDepartmentHistory
+);
+
+router.get(
+  "/students-out",
+  verifyJWT,
+  allowRoles("department"),
+  attachUser,
+  getDepartmentStudentsOut
 );
 
 export default router;

@@ -141,9 +141,27 @@ export const getAcademicHistory = asyncHandler(async (req, res) => {
     passType: "OUT_OF_STATION",
   })
     .populate("student", "name rollNo department year hostel")
+    .populate("scannedByGate", "gateName gateId")
     .sort("-createdAt");
 
   return res
     .status(200)
     .json(new apiResponse(200, passes, "Academic outstation pass history"));
+});
+
+export const getAcademicStudentsOut = asyncHandler(async (req, res) => {
+  const passes = await Pass.find({
+    passType: "OUT_OF_STATION",
+    scanCount: 1,
+    scannedOutAt: { $exists: true },
+    scannedInAt: { $exists: false },
+    status: { $ne: "EXPIRED" }
+  })
+    .populate("student", "name rollNo department year hostel")
+    .populate("scannedByGate", "gateName gateId")
+    .sort("-scannedOutAt");
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, passes, "Academic students currently outside"));
 });

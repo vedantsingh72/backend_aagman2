@@ -85,26 +85,24 @@ export const scanGatePass = asyncHandler(async (req, res) => {
     throw new apiError(400, "QR code is required");
   }
 
-  const pass = await Pass.findOne({ qrCode }).populate("student", "name rollNo");
+  const pass = await Pass.findOne({ qrCode }).populate("student", "name rollNo department year hostel");
   if (!pass) {
     throw new apiError(404, "Invalid QR code");
   }
 
-  // Check if pass is approved based on pass type
+  const now = new Date();
+
   if (pass.passType === "OUT_OF_STATION") {
-    // OUT_OF_STATION must be approved by Department, Academic, AND Hostel
     if (pass.departmentApproval.status !== "APPROVED" ||
         pass.academicApproval.status !== "APPROVED" ||
         pass.hostelApproval.status !== "APPROVED") {
       throw new apiError(400, "Pass not fully approved. Missing required approvals.");
     }
   } else if (pass.passType === "LOCAL") {
-    // LOCAL only needs Hostel approval
     if (pass.hostelApproval.status !== "APPROVED") {
       throw new apiError(400, "Pass not approved by hostel office");
     }
   } else if (pass.passType === "TEA_COFFEE") {
-    // TEA_COFFEE is auto-approved but check if it's still valid (same day)
     const today = new Date();
     const passDate = new Date(pass.fromDate);
     if (today.toDateString() !== passDate.toDateString()) {
@@ -112,9 +110,16 @@ export const scanGatePass = asyncHandler(async (req, res) => {
     }
   }
 
-  // Check if pass is already expired/used
   if (pass.status === "EXPIRED" || pass.isUsed) {
     throw new apiError(400, "This pass has already been used and expired");
+  }
+
+  if (pass.toDate && new Date(pass.toDate) < now) {
+    throw new apiError(400, "Pass has expired. Validity period has ended.");
+  }
+
+  if (pass.fromDate && new Date(pass.fromDate) > now) {
+    throw new apiError(400, "Pass is not yet valid. Validity period has not started.");
   }
 
   // QR Code scanning logic:
@@ -126,24 +131,28 @@ export const scanGatePass = asyncHandler(async (req, res) => {
   const currentScanCount = pass.scanCount || 0;
 
   if (currentScanCount === 0) {
-    // First scan - student exiting
     pass.scannedOutAt = new Date();
-    pass.exitTime = new Date(); // Keep for backward compatibility
+    pass.exitTime = new Date();
     pass.scanCount = 1;
-    pass.scannedByGate = req.user.id; // Gate user ID
+    pass.scannedByGate = req.user.id;
     await pass.save();
     
     return res
       .status(200)
       .json(new apiResponse(200, {
-        pass,
+        pass: await Pass.findById(pass._id).populate("student", "name rollNo department year hostel"),
         message: "Exit recorded successfully",
-        scanType: "EXIT"
+        scanType: "EXIT",
+        timestamp: new Date(),
+        gateId: req.user.id
       }, "Exit recorded successfully"));
   } else if (currentScanCount === 1) {
-    // Second scan - student entering, pass becomes EXPIRED
+    if (!pass.scannedOutAt) {
+      throw new apiError(400, "Invalid scan order. Exit must be recorded before entry.");
+    }
+    
     pass.scannedInAt = new Date();
-    pass.entryTime = new Date(); // Keep for backward compatibility
+    pass.entryTime = new Date();
     pass.scanCount = 2;
     pass.isUsed = true;
     pass.status = "EXPIRED";
@@ -152,12 +161,13 @@ export const scanGatePass = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(new apiResponse(200, {
-        pass,
+        pass: await Pass.findById(pass._id).populate("student", "name rollNo department year hostel"),
         message: "Entry recorded. Pass expired.",
-        scanType: "ENTRY"
+        scanType: "ENTRY",
+        timestamp: new Date(),
+        gateId: req.user.id
       }, "Entry recorded. Pass expired."));
   } else {
-    // Third scan or more - invalid
     throw new apiError(400, "Invalid scan. This pass has already been used and expired.");
   }
 });

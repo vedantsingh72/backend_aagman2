@@ -153,9 +153,52 @@ export const getHostelHistory = asyncHandler(async (req, res) => {
     passType: { $in: ["LOCAL", "OUT_OF_STATION"] },
   })
     .populate("student", "name rollNo department year hostel")
+    .populate("scannedByGate", "gateName gateId")
     .sort("-createdAt");
 
   return res
     .status(200)
     .json(new apiResponse(200, passes, "Complete pass history"));
+});
+
+export const getStudentsCurrentlyOut = asyncHandler(async (req, res) => {
+  const passes = await Pass.find({
+    passType: { $in: ["LOCAL", "OUT_OF_STATION"] },
+    scanCount: 1,
+    scannedOutAt: { $exists: true },
+    scannedInAt: { $exists: false },
+    status: { $ne: "EXPIRED" }
+  })
+    .populate("student", "name rollNo department year hostel")
+    .populate("scannedByGate", "gateName gateId")
+    .sort("-scannedOutAt");
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, passes, "Students currently outside campus"));
+});
+
+export const getStudentsCurrentlyInside = asyncHandler(async (req, res) => {
+  const outStudents = await Pass.distinct("student", {
+    passType: { $in: ["LOCAL", "OUT_OF_STATION"] },
+    scanCount: 1,
+    scannedOutAt: { $exists: true },
+    scannedInAt: { $exists: false },
+    status: { $ne: "EXPIRED" }
+  });
+
+  const allPasses = await Pass.find({
+    passType: { $in: ["LOCAL", "OUT_OF_STATION"] },
+    status: "APPROVED"
+  })
+    .populate("student", "name rollNo department year hostel")
+    .sort("-createdAt");
+
+  const insidePasses = allPasses.filter(pass => 
+    !outStudents.some(outId => outId.toString() === pass.student._id.toString())
+  );
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, insidePasses, "Students currently inside campus"));
 });

@@ -153,9 +153,33 @@ export const getDepartmentHistory = asyncHandler(async (req, res) => {
     department: department.departmentName,
   })
     .populate("student", "name rollNo department year hostel")
+    .populate("scannedByGate", "gateName gateId")
     .sort("-createdAt");
 
   return res
     .status(200)
     .json(new apiResponse(200, passes, "Department outstation pass history"));
+});
+
+export const getDepartmentStudentsOut = asyncHandler(async (req, res) => {
+  const department = req.account;
+  if (!department || !department.departmentName) {
+    throw new apiError(400, "Department information not found");
+  }
+
+  const passes = await Pass.find({
+    passType: "OUT_OF_STATION",
+    department: department.departmentName,
+    scanCount: 1,
+    scannedOutAt: { $exists: true },
+    scannedInAt: { $exists: false },
+    status: { $ne: "EXPIRED" }
+  })
+    .populate("student", "name rollNo department year hostel")
+    .populate("scannedByGate", "gateName gateId")
+    .sort("-scannedOutAt");
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, passes, "Department students currently outside"));
 });

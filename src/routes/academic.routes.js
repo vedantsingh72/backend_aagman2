@@ -6,6 +6,7 @@ import {
   getDepartmentLeaveStatsController,
   approveAcademicPass,
   getAcademicHistory,
+  getAcademicStudentsOut,
 } from "../controllers/academic.controller.js";
 import { validate } from "../middleware/validate.middleware.js";
 import { registerAcademicSchema } from "../schemas/academic.schema.js";
@@ -49,6 +50,13 @@ router.get(
   verifyJWT,
   allowRoles("academic"),
   getAcademicHistory
+);
+
+router.get(
+  "/students-out",
+  verifyJWT,
+  allowRoles("academic"),
+  getAcademicStudentsOut
 );
 
 export default router;

@@ -4,6 +4,8 @@ import {
   getPendingLocalPasses,
   approveLocalPass,
   getHostelHistory,
+  getStudentsCurrentlyOut,
+  getStudentsCurrentlyInside,
 } from "../controllers/hosteloffice.controller.js";
 
 import { validate } from "../middleware/validate.middleware.js";
@@ -38,6 +40,20 @@ router.get(
   verifyJWT,
   allowRoles("hosteloffice"),
   getHostelHistory
+);
+
+router.get(
+  "/students-out",
+  verifyJWT,
+  allowRoles("hosteloffice"),
+  getStudentsCurrentlyOut
+);
+
+router.get(
+  "/students-inside",
+  verifyJWT,
+  allowRoles("hosteloffice"),
+  getStudentsCurrentlyInside
 );
 
 export default router;
