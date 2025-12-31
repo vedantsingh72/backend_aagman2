@@ -32,8 +32,8 @@ app.use((req, res, next) => {
 // Enable CORS - Production safe
 
 const allowedOrigins = [
-  "https://aagman20.vercel.app",
-  "https://aagman20-git-main-vedantsingh72s-projects.vercel.app",
+  "https://aagamanmain.vercel.app/",
+  "https://aagamanmain-git-main-vedantsingh72s-projects.vercel.app/",
   "http://localhost:5173",
   "http://localhost:3000"
 ];
