@@ -32,11 +32,12 @@ app.use((req, res, next) => {
 // Enable CORS - Production safe
 
 const allowedOrigins = [
-  "https://aagamanmain.vercel.app/",
-  "https://aagamanmain-git-main-vedantsingh72s-projects.vercel.app/",
+  "https://aagamanmain.vercel.app",
+  "https://aagamanmain-git-main-vedantsingh72s-projects.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000"
 ];
+
 
 app.use(cors({
   origin: function (origin, callback) {
