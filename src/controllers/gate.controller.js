@@ -78,6 +78,10 @@ export const registerGate = asyncHandler(async (req, res) => {
     .json(new apiResponse(201, gateData, "Gate registered successfully. Please verify your email with OTP."));
 });
 
+
+
+
+
 export const scanGatePass = asyncHandler(async (req, res) => {
   const { qrCode } = req.body;
 
@@ -85,7 +89,9 @@ export const scanGatePass = asyncHandler(async (req, res) => {
     throw new apiError(400, "QR code is required");
   }
 
-  const pass = await Pass.findById(qrCode).populate("student", "name rollNo department year hostel");
+  const pass = await Pass.findById(qrCode)
+    .populate("student", "name rollNo department year hostel");
+
   if (!pass) {
     throw new apiError(404, "Invalid QR code");
   }
@@ -93,79 +99,73 @@ export const scanGatePass = asyncHandler(async (req, res) => {
   const now = new Date();
 
   if (pass.passType === "OUT_OF_STATION") {
-    if (pass.departmentApproval.status !== "APPROVED" ||
-        pass.academicApproval.status !== "APPROVED" ||
-        pass.hostelApproval.status !== "APPROVED") {
-      throw new apiError(400, "Pass not fully approved. Missing required approvals.");
-    }
-  } else if (pass.passType === "LOCAL") {
-    if (pass.hostelApproval.status !== "APPROVED") {
-      throw new apiError(400, "Pass not approved by hostel office");
-    }
-  } else if (pass.passType === "TEA_COFFEE") {
-    const today = new Date();
-    const passDate = new Date(pass.fromDate);
-    if (today.toDateString() !== passDate.toDateString()) {
-      throw new apiError(400, "Tea/Coffee pass is only valid for the same day");
+    if (
+      pass.departmentApproval.status !== "APPROVED" ||
+      pass.academicApproval.status !== "APPROVED" ||
+      pass.hostelApproval.status !== "APPROVED"
+    ) {
+      throw new apiError(400, "Pass not fully approved.");
     }
   }
 
-  if (pass.status === "EXPIRED" || pass.status === "CLOSED" || pass.isUsed) {
-    throw new apiError(400, "This pass has already been used and closed");
+  if (pass.passType === "LOCAL" && pass.hostelApproval.status !== "APPROVED") {
+    throw new apiError(400, "Pass not approved by hostel office");
+  }
+
+  if (pass.status === "EXPIRED" || pass.status === "CLOSED") {
+    throw new apiError(400, "Pass already closed");
   }
 
   if (pass.toDate && new Date(pass.toDate) < now) {
-    throw new apiError(400, "Pass has expired. Validity period has ended.");
+    throw new apiError(400, "Pass has expired");
   }
 
   if (pass.fromDate && new Date(pass.fromDate) > now) {
-    throw new apiError(400, "Pass is not yet valid. Validity period has not started.");
+    throw new apiError(400, "Pass not yet valid");
   }
 
-  if (pass.status !== "APPROVED") {
-    throw new apiError(400, "Pass is not approved. Cannot scan.");
-  }
+  let scanType = "EXIT";
 
-  const currentScanCount = pass.scanCount || 0;
-
-  if (currentScanCount === 0) {
+  if (!pass.scanCount || pass.scanCount === 0) {
     pass.scannedOutAt = new Date();
     pass.exitTime = new Date();
     pass.scanCount = 1;
-    pass.scannedByGate = req.user.id;
-    await pass.save();
-    
-    return res
-      .status(200)
-      .json(new apiResponse(200, {
-        pass: await Pass.findById(pass._id).populate("student", "name rollNo department year hostel"),
-        message: "Exit recorded successfully",
-        scanType: "EXIT",
-        timestamp: new Date(),
-        gateId: req.user.id
-      }, "Exit recorded successfully"));
-  } else if (currentScanCount === 1) {
-    if (!pass.scannedOutAt) {
-      throw new apiError(400, "Invalid scan order. Exit must be recorded before entry.");
-    }
-    
+  } else if (pass.scanCount === 1) {
     pass.scannedInAt = new Date();
     pass.entryTime = new Date();
     pass.scanCount = 2;
     pass.isUsed = true;
     pass.status = "CLOSED";
-    await pass.save();
-    
-    return res
-      .status(200)
-      .json(new apiResponse(200, {
-        pass: await Pass.findById(pass._id).populate("student", "name rollNo department year hostel"),
-        message: "Entry recorded. Pass expired.",
-        scanType: "ENTRY",
-        timestamp: new Date(),
-        gateId: req.user.id
-      }, "Entry recorded. Pass expired."));
+    scanType = "ENTRY";
   } else {
     throw new apiError(400, "Pass already closed");
   }
+
+  await pass.save();
+
+  const populatedPass = await Pass.findById(pass._id)
+    .populate("student", "name rollNo department year hostel");
+
+  // 🔥 THIS IS THE FIX — FLATTEN DATA
+  return res.status(200).json(
+    new apiResponse(200, {
+      isUsed: populatedPass.isUsed,
+      passType: populatedPass.passType,
+      fromDate: populatedPass.fromDate,
+      toDate: populatedPass.toDate,
+      reason: populatedPass.reason,
+
+      student: {
+        name: populatedPass.student?.name,
+        rollNo: populatedPass.student?.rollNo,
+        department: populatedPass.student?.department,
+        year: populatedPass.student?.year,
+        hostel: populatedPass.student?.hostel
+      },
+
+      scanType,
+      timestamp: new Date(),
+      gateId: req.user.id
+    }, "Scan successful")
+  );
 });
