@@ -6,6 +6,7 @@ export const PASS_STATUS = {
   APPROVED: "APPROVED",
   REJECTED: "REJECTED",
   EXPIRED: "EXPIRED",
+  CLOSED: "CLOSED",
 };
 
 export const APPROVAL_STATUS = {

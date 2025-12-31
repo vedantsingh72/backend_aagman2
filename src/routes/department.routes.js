@@ -4,6 +4,7 @@ import {
   getPendingOutstationPasses,
   getDepartmentStudentLeaves,
   approveOutstationPass,
+  rejectOutstationPass,
   getDepartmentHistory,
   getDepartmentStudentsOut,
 } from "../controllers/department.controller.js";
@@ -40,6 +41,14 @@ router.patch(
   allowRoles("department"),
   attachUser,
   approveOutstationPass
+);
+
+router.patch(
+  "/reject/:id",
+  verifyJWT,
+  allowRoles("department"),
+  attachUser,
+  rejectOutstationPass
 );
 
 router.get(

@@ -76,11 +76,6 @@ export const createPass = asyncHandler(async (req, res) => {
     passData.departmentApproval = { status: "N/A" };
     passData.academicApproval = { status: "N/A" };
   } else if (passType === PASS_TYPES.TEA_COFFEE) {
-    const { generateQRString, generateQRCodeImage } = await import("../utils/qr.utils.js");
-    const qrString = generateQRString();
-    const qrImage = await generateQRCodeImage(qrString);
-    passData.qrCode = qrString;
-    passData.qrImage = qrImage;
     passData.departmentApproval = { status: "N/A" };
     passData.academicApproval = { status: "N/A" };
     passData.hostelApproval = { status: "N/A" };
@@ -94,6 +89,15 @@ export const createPass = asyncHandler(async (req, res) => {
   }
 
   const pass = await Pass.create(passData);
+
+  if (passType === PASS_TYPES.TEA_COFFEE) {
+    const { generateQRString, generateQRCodeImage } = await import("../utils/qr.utils.js");
+    const qrString = generateQRString(pass._id);
+    const qrImage = await generateQRCodeImage(qrString);
+    pass.qrCode = qrString;
+    pass.qrImage = qrImage;
+    await pass.save();
+  }
 
   await pass.populate("student", "name rollNo department year");
 

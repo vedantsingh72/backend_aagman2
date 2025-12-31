@@ -85,7 +85,7 @@ export const scanGatePass = asyncHandler(async (req, res) => {
     throw new apiError(400, "QR code is required");
   }
 
-  const pass = await Pass.findOne({ qrCode }).populate("student", "name rollNo department year hostel");
+  const pass = await Pass.findById(qrCode).populate("student", "name rollNo department year hostel");
   if (!pass) {
     throw new apiError(404, "Invalid QR code");
   }
@@ -110,8 +110,8 @@ export const scanGatePass = asyncHandler(async (req, res) => {
     }
   }
 
-  if (pass.status === "EXPIRED" || pass.isUsed) {
-    throw new apiError(400, "This pass has already been used and expired");
+  if (pass.status === "EXPIRED" || pass.status === "CLOSED" || pass.isUsed) {
+    throw new apiError(400, "This pass has already been used and closed");
   }
 
   if (pass.toDate && new Date(pass.toDate) < now) {
@@ -122,11 +122,9 @@ export const scanGatePass = asyncHandler(async (req, res) => {
     throw new apiError(400, "Pass is not yet valid. Validity period has not started.");
   }
 
-  // QR Code scanning logic:
-  // FIRST scan → EXIT (scannedOutAt)
-  // SECOND scan → ENTRY (scannedInAt)
-  // After ENTRY scan → pass EXPIRED
-  // Third scan must FAIL with error
+  if (pass.status !== "APPROVED") {
+    throw new apiError(400, "Pass is not approved. Cannot scan.");
+  }
 
   const currentScanCount = pass.scanCount || 0;
 
@@ -155,7 +153,7 @@ export const scanGatePass = asyncHandler(async (req, res) => {
     pass.entryTime = new Date();
     pass.scanCount = 2;
     pass.isUsed = true;
-    pass.status = "EXPIRED";
+    pass.status = "CLOSED";
     await pass.save();
     
     return res
@@ -168,6 +166,6 @@ export const scanGatePass = asyncHandler(async (req, res) => {
         gateId: req.user.id
       }, "Entry recorded. Pass expired."));
   } else {
-    throw new apiError(400, "Invalid scan. This pass has already been used and expired.");
+    throw new apiError(400, "Pass already closed");
   }
 });

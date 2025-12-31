@@ -3,6 +3,7 @@ import {
   registerHostelOffice,
   getPendingLocalPasses,
   approveLocalPass,
+  rejectLocalPass,
   getHostelHistory,
   getStudentsCurrentlyOut,
   getStudentsCurrentlyInside,
@@ -33,6 +34,13 @@ router.patch(
   verifyJWT,
   allowRoles("hosteloffice"),
   approveLocalPass
+);
+
+router.patch(
+  "/reject/:id",
+  verifyJWT,
+  allowRoles("hosteloffice"),
+  rejectLocalPass
 );
 
 router.get(

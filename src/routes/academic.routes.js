@@ -5,6 +5,7 @@ import {
   getAcademicStudentLeaves,
   getDepartmentLeaveStatsController,
   approveAcademicPass,
+  rejectAcademicPass,
   getAcademicHistory,
   getAcademicStudentsOut,
 } from "../controllers/academic.controller.js";
@@ -43,6 +44,13 @@ router.patch(
   verifyJWT,
   allowRoles("academic"),
   approveAcademicPass
+);
+
+router.patch(
+  "/reject/:id",
+  verifyJWT,
+  allowRoles("academic"),
+  rejectAcademicPass
 );
 
 router.get(

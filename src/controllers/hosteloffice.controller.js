@@ -129,7 +129,7 @@ export const approveLocalPass = asyncHandler(async (req, res) => {
     throw new apiError(400, "Pass is not pending hostel approval");
   }
 
-  const qrString = generateQRString();
+  const qrString = generateQRString(pass._id);
   const qrImage = await generateQRCodeImage(qrString);
 
   pass.hostelApproval.status = "APPROVED";
@@ -146,6 +146,33 @@ export const approveLocalPass = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new apiResponse(200, pass, "Pass approved by hostel office"));
+});
+
+export const rejectLocalPass = asyncHandler(async (req, res) => {
+  const pass = await Pass.findById(req.params.id);
+  if (!pass) {
+    throw new apiError(404, "Pass not found");
+  }
+
+  if (pass.passType !== "LOCAL" && pass.passType !== "OUT_OF_STATION") {
+    throw new apiError(400, "This pass type cannot be rejected by hostel office");
+  }
+
+  if (pass.hostelApproval.status !== "PENDING") {
+    throw new apiError(400, "Pass is not pending hostel approval");
+  }
+
+  pass.hostelApproval.status = "REJECTED";
+  pass.hostelApproval.approvedBy = req.user.id;
+  pass.hostelApproval.approvedAt = new Date();
+  pass.status = "REJECTED";
+
+  await pass.save();
+  await pass.populate("student", "name rollNo department year hostel");
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, pass, "Pass rejected by hostel office"));
 });
 
 export const getHostelHistory = asyncHandler(async (req, res) => {

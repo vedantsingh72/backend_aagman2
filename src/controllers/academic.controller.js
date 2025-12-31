@@ -136,6 +136,37 @@ export const approveAcademicPass = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, pass, "Approved by academic office"));
 });
 
+export const rejectAcademicPass = asyncHandler(async (req, res) => {
+  const pass = await Pass.findById(req.params.id);
+  if (!pass) {
+    throw new apiError(404, "Pass not found");
+  }
+
+  if (pass.passType !== "OUT_OF_STATION") {
+    throw new apiError(400, "Academic office can only reject OUT_OF_STATION passes");
+  }
+
+  if (pass.academicApproval.status !== "PENDING") {
+    throw new apiError(400, "Pass is not pending academic approval");
+  }
+
+  if (pass.status !== "PENDING_ACADEMIC") {
+    throw new apiError(400, "Pass must be approved by department first");
+  }
+
+  pass.academicApproval.status = "REJECTED";
+  pass.academicApproval.approvedBy = req.user.id;
+  pass.academicApproval.approvedAt = new Date();
+  pass.status = "REJECTED";
+
+  await pass.save();
+  await pass.populate("student", "name rollNo department year hostel");
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, pass, "Rejected by academic office"));
+});
+
 export const getAcademicHistory = asyncHandler(async (req, res) => {
   const passes = await Pass.find({
     passType: "OUT_OF_STATION",

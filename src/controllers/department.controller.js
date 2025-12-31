@@ -142,6 +142,38 @@ export const approveOutstationPass = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, pass, "Outstation pass approved by department"));
 });
 
+export const rejectOutstationPass = asyncHandler(async (req, res) => {
+  const pass = await Pass.findById(req.params.id);
+  if (!pass) {
+    throw new apiError(404, "Pass not found");
+  }
+
+  if (pass.passType !== "OUT_OF_STATION") {
+    throw new apiError(400, "Department can only reject OUT_OF_STATION passes");
+  }
+
+  const department = req.account;
+  if (pass.department !== department.departmentName) {
+    throw new apiError(403, "You can only reject passes from your department");
+  }
+
+  if (pass.departmentApproval.status !== "PENDING") {
+    throw new apiError(400, "Pass is not pending department approval");
+  }
+
+  pass.departmentApproval.status = "REJECTED";
+  pass.departmentApproval.approvedBy = req.user.id;
+  pass.departmentApproval.approvedAt = new Date();
+  pass.status = "REJECTED";
+
+  await pass.save();
+  await pass.populate("student", "name rollNo department year hostel");
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, pass, "Outstation pass rejected by department"));
+});
+
 export const getDepartmentHistory = asyncHandler(async (req, res) => {
   const department = req.account;
   if (!department || !department.departmentName) {

@@ -92,7 +92,7 @@ const PassSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["PENDING_DEPARTMENT", "PENDING_ACADEMIC", "PENDING_HOSTEL", "APPROVED", "REJECTED", "EXPIRED"],
+      enum: ["PENDING_DEPARTMENT", "PENDING_ACADEMIC", "PENDING_HOSTEL", "APPROVED", "REJECTED", "EXPIRED", "CLOSED"],
       default: "PENDING_DEPARTMENT",
     },
 
